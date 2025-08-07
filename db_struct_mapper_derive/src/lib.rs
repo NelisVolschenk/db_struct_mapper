@@ -5,9 +5,9 @@ extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
-use crate::impl_funcs::{insert, isdbstruct};
+use crate::impl_funcs::{insert, trait_checks};
 use crate::internals::parsed_struct::ParsedStruct;
-use db_struct_mapper_internal::IsDbStruct;
+use db_struct_mapper_internal::DbStruct;
 
 #[proc_macro_derive(DbStruct, attributes(dbstruct))]
 pub fn derive_from_struct_psql(input: TokenStream) -> TokenStream {
@@ -16,7 +16,7 @@ pub fn derive_from_struct_psql(input: TokenStream) -> TokenStream {
     let parsed_struct: ParsedStruct = input.clone().into();
     let struct_name = parsed_struct.ident.clone();
     
-    let trait_impl = isdbstruct::generate_trait_impl(parsed_struct.clone());
+    let trait_impl = trait_checks::generate_trait_impl(parsed_struct.clone());
     let mut impl_funcs: Vec<proc_macro2::TokenStream> = Vec::new();
     impl_funcs.push(insert::generate_tokenstream(parsed_struct.clone()));
     

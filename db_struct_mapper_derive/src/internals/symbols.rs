@@ -12,8 +12,8 @@ pub const NO_INSERT: Symbol = Symbol("no_insert");
 // pub const RETURN_VALUE: Symbol = Symbol("return_value");
 pub const PRIMARY_KEY: Symbol = Symbol("primary_key");
 pub const FOREIGN_KEY: Symbol = Symbol("foreign_key");
-pub const GET_VALUES: Symbol = Symbol("get_values");
-
+pub const ASSOCIATED_VALUES: Symbol = Symbol("associated_values");
+pub const BACKREF_KEY: Symbol = Symbol("backref_key");
 
 impl PartialEq<Symbol> for Ident {
     fn eq(&self, word: &Symbol) -> bool {

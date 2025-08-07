@@ -1,11 +1,11 @@
 
 use proc_macro2::Ident;
-use syn::{parse2, Data, DataStruct, DeriveInput, Expr, Fields};
+use syn::{Data, DataStruct, DeriveInput, Expr, Fields, Lit};
 use syn::parse::Parser;
 use crate::internals::parsed_field::ParsedField;
 use crate::internals::symbols::{DB_STRUCT, TABLE_NAME};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ParsedStruct {
     pub ident: Ident,
     pub table_name: String,
@@ -27,8 +27,10 @@ impl From<DeriveInput> for ParsedStruct {
                     .parse2(meta.tokens.clone()) {
                     for namevalue in namevalue_args {
                         if namevalue.path == TABLE_NAME {
-                            if let Expr::Lit(val) = namevalue.value {
-                                table_name = val.lit.suffix().to_string();
+                            if let Expr::Lit(exprlit) = namevalue.value {
+                                if let Lit::Str(litstr) = exprlit.lit {
+                                    table_name = litstr.value()
+                                }
                             }
                             continue
                         }

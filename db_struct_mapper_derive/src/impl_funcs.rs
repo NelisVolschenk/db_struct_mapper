@@ -1,2 +1,2 @@
 pub mod insert;
-pub mod isdbstruct;
+pub mod trait_checks;

@@ -2,31 +2,43 @@ use db_struct_mapper::DbStruct;
 
 #[test]
 fn test_derive() -> () {
-    #[derive(Default, Debug, DbStruct)]
-    #[dbstruct(table_name="TestTable")]
-    struct TestStruct {
-        #[dbstruct(no_insert)]
-        id: i64,
-        name: String,
-        password: String,
-        #[dbstruct(foreign_key)]
-        sub: SubTestStruct,
-        #[dbstruct(get_values)]
-        sub2: SubTestStruct,
-    }
 
-    #[derive(Debug, Default, DbStruct)]
-    struct SubTestStruct {
-        id: i64
-    }
-    let a = TestStruct::default();
+    let _a = TestStruct::default();
+}
+
+#[derive(Default, Debug, DbStruct)]
+#[dbstruct(table_name="TestTable")]
+struct TestStruct {
+    #[dbstruct(primary_key)]
+    id: i64,
+    name: String,
+    password: String,
+    #[dbstruct(foreign_key)]
+    sub: ForeignKeyStruct,
+    #[dbstruct(associated_values)]
+    sub2: Vec<MultiValueStruct>,
+}
+
+#[derive(Debug, Default, DbStruct)]
+#[dbstruct(table_name="ForeignKeyTable")]
+struct ForeignKeyStruct {
+    #[dbstruct(primary_key)]
+    id: i64,
+    val1: i32
+}
+
+#[derive(Debug, Default, DbStruct)]
+#[dbstruct(table_name="ReferenceTable")]
+struct MultiValueStruct {
+    #[dbstruct(primary_key)]
+    id: i64,
+    // val1: String,
+    // val2: String,
+    #[dbstruct(backref_key)]
+    testtable_id: i64
 }
 
 
-// struct Tester {
-//     
-// }
-// 
 // impl Tester {
 //     fn insert_query(&self, table: &str) -> String {
 //         let sqlquery = format!("insert into {} ( {} ) values ( {} ) returning *", table, "name,password", "$1,$2");

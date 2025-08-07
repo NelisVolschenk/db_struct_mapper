@@ -11,7 +11,8 @@ pub struct ParsedField {
     pub no_insert: bool,
     pub primary_key: bool,
     pub foreign_key: bool,
-    pub get_values: bool,
+    pub associated_values: bool,
+    pub backref_key: bool
 }
 
 impl From<Field> for ParsedField {
@@ -26,7 +27,8 @@ impl From<Field> for ParsedField {
         let mut no_insert = false;
         let mut primary_key = false;
         let mut foreign_key = false;
-        let mut get_values = false;
+        let mut associated_values = false;
+        let mut backref_key = false;
         
         let attrs = orig_field.attrs.clone();
         for attr in attrs {
@@ -42,7 +44,8 @@ impl From<Field> for ParsedField {
                 if meta.path == NO_INSERT {no_insert = true}
                 if meta.path == PRIMARY_KEY {primary_key = true}
                 if meta.path == FOREIGN_KEY {foreign_key = true}
-                if meta.path == GET_VALUES {get_values = true}
+                if meta.path == ASSOCIATED_VALUES {associated_values = true}
+                if meta.path == BACKREF_KEY {backref_key = true}
                 Ok(())
             }
             ).unwrap();
@@ -56,7 +59,8 @@ impl From<Field> for ParsedField {
             no_insert,
             primary_key,
             foreign_key,
-            get_values
+            associated_values,
+            backref_key
         }
     }
 }

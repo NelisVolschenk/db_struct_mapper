@@ -10,7 +10,7 @@ pub fn generate_tokenstream(parsed_struct: ParsedStruct) -> TokenStream {
     let insert_fields: Vec<ParsedField> = parsed_fields
         .clone()
         .into_iter()
-        .filter(|x| !x.no_insert & !x.foreign_key & !x.get_values)
+        .filter(|x| !x.no_insert & !x.foreign_key & !x.associated_values)
         .collect();
 
     let insert_idents = insert_fields
@@ -31,13 +31,28 @@ pub fn generate_tokenstream(parsed_struct: ParsedStruct) -> TokenStream {
             sqlquery
         }
         
-        pub async fn insert<'e, E, T>(&self, executor: E) -> sqlx::Result<T>
+        // pub async fn insert<T>(&self, pool: &sqlx::PgPool, table: &str) -> sqlx::Result<T>
+        // where
+        //     T: Send,
+        //     T: for<'c> sqlx::FromRow<'c, sqlx::postgres::PgRow>,
+        //     T: std::marker::Unpin
+        // {
+        //     let transaction = pool.begin().await?;
+        //     self.insert_ex(transaction).await
+        // }
+        
+        pub async fn insert_ex<'e, E, T>(&self, executor: E) -> sqlx::Result<T>
         where
             T: Send,
             T: for<'c> sqlx::FromRow<'c, sqlx::postgres::PgRow>,
             T: std::marker::Unpin,
             E: sqlx::Executor<'e,Database = sqlx::Postgres>
         {
+            // Do everything in a transaction
+            
+            // First insert all foreign key values
+            
+            // Then insert 
             let sql = self.insert_query(#insert_table);
             
             let res: T = sqlx::query_as::<_,T>(&sql)
