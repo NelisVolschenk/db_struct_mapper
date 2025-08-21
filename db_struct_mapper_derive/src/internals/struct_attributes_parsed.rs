@@ -1,23 +1,21 @@
-
 use proc_macro2::Ident;
-use syn::{Data, DataStruct, DeriveInput, Expr, Fields, Lit};
+use syn::{DeriveInput, Expr, Lit};
 use syn::parse::Parser;
-use crate::internals::parsed_field::ParsedField;
+use crate::internals::struct_fields_parsed::StructWithFieldsParsed;
 use crate::internals::symbols::{DB_STRUCT, TABLE_NAME};
 
 #[derive(Clone, Debug)]
-pub struct ParsedStruct {
+pub struct StructWithAttributesParsed {
     pub ident: Ident,
     pub table_name: String,
-    pub parsed_fields : Vec<ParsedField>
+    pub derive_input: DeriveInput
 }
 
-impl From<DeriveInput> for ParsedStruct {
-    fn from(input: DeriveInput) -> Self {
-        
-        let ident = input.ident.clone();
+impl From<DeriveInput> for StructWithAttributesParsed {
+    fn from(derive_input: DeriveInput) -> Self {
+        let ident = derive_input.ident.clone();
         let mut table_name = String::new();
-        for attr in input.attrs.clone() {
+        for attr in derive_input.attrs.clone() {
             if attr.path() != DB_STRUCT {continue}
             if let syn::Meta::List(meta) = &attr.meta {
                 if meta.tokens.is_empty() {
@@ -40,22 +38,20 @@ impl From<DeriveInput> for ParsedStruct {
                 panic!("Only one type of identifier allowed per attribute")
             }
         }
-        let fields = match &input.data {
-            Data::Struct(DataStruct {
-                             fields: Fields::Named(fields),
-                             ..
-                         }) => &fields.named,
-            _ => panic!("expected a struct with named fields"),
-        };
-        let parsed_fields : Vec<ParsedField> = fields
-            .iter()
-            .map(|x| x.clone().into())
-            .collect();
-        
         Self {
             ident,
             table_name,
-            parsed_fields
+            derive_input
         }
+    }
+}
+
+impl StructWithAttributesParsed {
+    
+    pub fn from_derive_input(derive_input: DeriveInput) -> Self {
+        derive_input.into()
+    }
+    pub fn to_struct_with_fields_parsed(self) -> StructWithFieldsParsed {
+        self.into()
     }
 }

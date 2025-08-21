@@ -1,32 +1,47 @@
 mod internals;
-mod impl_funcs;
+mod derive_parts;
 
 extern crate proc_macro;
 use self::proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
-use crate::impl_funcs::{insert, trait_checks};
-use crate::internals::parsed_struct::ParsedStruct;
-use db_struct_mapper_internal::DbStruct;
+use syn::{parse_macro_input, DeriveInput, ItemMod};
+use crate::derive_parts::{select, trait_checks};
+use crate::internals::struct_attributes_parsed::StructWithAttributesParsed;
+
+#[proc_macro_attribute]
+pub fn db_struct_module(outer: TokenStream, inner: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(inner as ItemMod);
+    println!("{:#?}", outer);
+    println!("{:#?}", input);
+    quote! {struct Check {id: i64}}.into()
+}
 
 #[proc_macro_derive(DbStruct, attributes(dbstruct))]
 pub fn derive_from_struct_psql(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
+        
+    let parsed_struct = StructWithAttributesParsed::from_derive_input(input)
+        .to_struct_with_fields_parsed()
+        .to_struct_fully_parsed();
     
-    let parsed_struct: ParsedStruct = input.clone().into();
-    let struct_name = parsed_struct.ident.clone();
+    // let struct_name = parsed_struct.ident.clone();
     
     let trait_impl = trait_checks::generate_trait_impl(parsed_struct.clone());
-    let mut impl_funcs: Vec<proc_macro2::TokenStream> = Vec::new();
-    impl_funcs.push(insert::generate_tokenstream(parsed_struct.clone()));
+    let pk_struct = parsed_struct.primary_key_struct.tokens.clone();
+    let fetch_helper_struct = parsed_struct.fetch_helper_struct.tokens.clone();
+    let insert_helper_struct = parsed_struct.insert_helper_struct.tokens.clone();
     
-
+    let mut impl_funcs: Vec<proc_macro2::TokenStream> = Vec::new();
+    // impl_funcs.push(insert::generate_tokenstream(parsed_struct.clone()));
+    impl_funcs.push(select::generate_tokenstream(parsed_struct.clone()));
+    
     TokenStream::from(quote! {
+        #pk_struct
+        #fetch_helper_struct
+        #insert_helper_struct
         #trait_impl
-
-        impl #struct_name {
-            #(#impl_funcs)*
-        }
+        //
+        #(#impl_funcs)*
     })
     
     // // INSERT Attributes -> field names
